@@ -32,11 +32,22 @@ struct Summoner {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() < 3 {
+        eprintln!("Usage: lolt <name> <tag>");
+        std::process::exit(1);
+    }
+
+    let game_name = &args[1];
+    let tag_line = &args[2];
+
     let client = Client::new();
 
+    // TODO: make api key available system wide via ./zshrc or ./bashrc
     dotenv().ok();
 
-    let account = match get_account(&client, "Faker", "666").await {
+    let account = match get_account(&client, game_name, tag_line).await {
         Ok(account) => account,
         Err(e) => panic!("{}", e),
     };
@@ -129,7 +140,7 @@ async fn get_profile_icon(
 
     let url = format!(
         "https://ddragon.leagueoflegends.com/cdn/{}/img/profileicon/{}.png",
-        env::var("API_KEY").expect("Missing DDragon version key"),
+        env::var("DDRAGON_VERSION").expect("Missing DDragon version key"),
         icon_id
     );
 
