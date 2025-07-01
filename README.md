@@ -30,6 +30,7 @@ icons.
 - Match history and ranked stats display
 - Custom themes and layouts
 - Better fallback for terminals without image support
+- Tracking Sessions with W/L ratio at the end
 
 ---
 
