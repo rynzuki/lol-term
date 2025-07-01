@@ -125,7 +125,7 @@ async fn get_profile_icon(
     client: &Client,
     icon_id: i32,
 ) -> Result<String, Box<dyn std::error::Error>> {
-    let mut dir = std::env::current_dir()?;
+    let mut dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     dir.push("icons");
 
     if !dir.exists() {
