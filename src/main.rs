@@ -1,6 +1,6 @@
 mod models;
 
-use crate::models::{Account, Match, Summoner};
+use crate::models::{AccountDto, MatchDto, SummonerDto};
 use clap::{Parser, Subcommand};
 use dotenv::dotenv;
 use reqwest::Client;
@@ -46,7 +46,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             display_summoner_stats(&account, &summoner);
 
             let match_ids = get_match_ids(&client, account.puuid.clone(), 5).await?;
-            let match_data = get_match(&client, &match_ids[0]).await;
+            let match_data = get_match(&client, &match_ids[1]).await;
 
             println!("{:#?}", match_data?);
 
@@ -59,7 +59,7 @@ async fn get_account(
     client: &Client,
     game_name: &str,
     tag_line: &str,
-) -> Result<Account, Box<dyn std::error::Error>> {
+) -> Result<AccountDto, Box<dyn std::error::Error>> {
     let url = format!(
         "https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{}/{}",
         game_name, tag_line
@@ -79,7 +79,7 @@ async fn get_account(
         return Err(Box::from(body));
     }
 
-    let account = res.json::<Account>().await?;
+    let account = res.json::<AccountDto>().await?;
 
     Ok(account)
 }
@@ -87,7 +87,7 @@ async fn get_account(
 async fn get_summoner(
     client: &Client,
     puuid: String,
-) -> Result<Summoner, Box<dyn std::error::Error>> {
+) -> Result<SummonerDto, Box<dyn std::error::Error>> {
     let url = format!(
         "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{}",
         puuid
@@ -107,7 +107,7 @@ async fn get_summoner(
         return Err(Box::from(body));
     }
 
-    let summoner = res.json::<Summoner>().await?;
+    let summoner = res.json::<SummonerDto>().await?;
 
     Ok(summoner)
 }
@@ -144,7 +144,7 @@ async fn get_match_ids(
 async fn get_match(
     client: &Client,
     match_id: &String,
-) -> Result<Match, Box<dyn std::error::Error>> {
+) -> Result<MatchDto, Box<dyn std::error::Error>> {
     let url = format!(
         "https://europe.api.riotgames.com/lol/match/v5/matches/{}",
         match_id
@@ -164,7 +164,7 @@ async fn get_match(
         return Err(Box::from(body));
     }
 
-    let match_data = res.json::<Match>().await?;
+    let match_data = res.json::<MatchDto>().await?;
 
     Ok(match_data)
 }
@@ -228,7 +228,7 @@ fn display_summoner_icon(path: String) {
     };
 }
 
-fn display_summoner_stats(account: &Account, summoner: &Summoner) {
+fn display_summoner_stats(account: &AccountDto, summoner: &SummonerDto) {
     let name = format!("{}#{}", account.game_name, account.tag_line);
     let level = format!("LvL {}", summoner.summoner_level);
 
