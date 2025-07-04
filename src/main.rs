@@ -1,59 +1,33 @@
+mod models;
+
+use crate::models::{Account, Match, Summoner};
+use clap::{Parser, Subcommand};
 use dotenv::dotenv;
 use reqwest::Client;
-use serde::Deserialize;
 use std::env;
 use std::io::Write;
 use viuer::{Config, print_from_file};
-use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = "lolt")]
 struct Cli {
     #[command(subcommand)]
-    command: Commands
+    command: Commands,
 }
 
 #[derive(Subcommand)]
 enum Commands {
-    Display {
-        name: String,
-        tag: String
-    }
-}
-
-#[derive(Debug, Deserialize)]
-struct Account {
-    puuid: String,
-
-    #[serde(rename = "gameName")]
-    game_name: String,
-
-    #[serde(rename = "tagLine")]
-    tag_line: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct Summoner {
-    puuid: String,
-
-    #[serde(rename = "profileIconId")]
-    profile_icon_id: i32,
-
-    #[serde(rename = "revisionDate")]
-    revision_date: i64,
-
-    #[serde(rename = "summonerLevel")]
-    summoner_level: i64,
+    Display { name: String, tag: String },
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // TODO: create cfw to supply riot api data
     dotenv().ok();
-    
+
     let cli = Cli::parse();
-    
-    match &cli.command { 
+
+    match &cli.command {
         Commands::Display { name, tag } => {
             let client = Client::new();
 
@@ -69,7 +43,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             let path = get_profile_icon(&client, summoner.profile_icon_id).await?;
             display_summoner_icon(path);
-            display_summoner_stats(account, summoner);
+            display_summoner_stats(&account, &summoner);
+
+            let match_ids = get_match_ids(&client, account.puuid.clone(), 5).await?;
+            let match_data = get_match(&client, &match_ids[0]).await;
+
+            println!("{:#?}", match_data?);
 
             Ok(())
         }
@@ -133,6 +112,63 @@ async fn get_summoner(
     Ok(summoner)
 }
 
+async fn get_match_ids(
+    client: &Client,
+    puuid: String,
+    amount: u8,
+) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+    let url = format!(
+        "https://europe.api.riotgames.com/lol/match/v5/matches/by-puuid/{}/ids?count={}",
+        puuid, amount
+    );
+
+    let res = client
+        .get(&url)
+        .header(
+            "X-Riot-Token",
+            env::var("API_KEY").expect("Missing API key"),
+        )
+        .send()
+        .await?;
+
+    if !res.status().is_success() {
+        let body = res.text().await?;
+        return Err(Box::from(body));
+    }
+
+    let ids = res.json::<Vec<String>>().await?;
+
+    Ok(ids)
+}
+
+async fn get_match(
+    client: &Client,
+    match_id: &String,
+) -> Result<Match, Box<dyn std::error::Error>> {
+    let url = format!(
+        "https://europe.api.riotgames.com/lol/match/v5/matches/{}",
+        match_id
+    );
+
+    let res = client
+        .get(&url)
+        .header(
+            "X-Riot-Token",
+            env::var("API_KEY").expect("Missing API key"),
+        )
+        .send()
+        .await?;
+
+    if !res.status().is_success() {
+        let body = res.text().await?;
+        return Err(Box::from(body));
+    }
+
+    let match_data = res.json::<Match>().await?;
+
+    Ok(match_data)
+}
+
 async fn get_profile_icon(
     client: &Client,
     icon_id: i32,
@@ -192,7 +228,7 @@ fn display_summoner_icon(path: String) {
     };
 }
 
-fn display_summoner_stats(account: Account, summoner: Summoner) {
+fn display_summoner_stats(account: &Account, summoner: &Summoner) {
     let name = format!("{}#{}", account.game_name, account.tag_line);
     let level = format!("LvL {}", summoner.summoner_level);
 
