@@ -4,6 +4,22 @@ use serde::Deserialize;
 use std::env;
 use std::io::Write;
 use viuer::{Config, print_from_file};
+use clap::{Parser, Subcommand};
+
+#[derive(Parser)]
+#[command(name = "lolt")]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    Display {
+        name: String,
+        tag: String
+    }
+}
 
 #[derive(Debug, Deserialize)]
 struct Account {
@@ -32,36 +48,32 @@ struct Summoner {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args: Vec<String> = env::args().collect();
-
-    if args.len() < 3 {
-        eprintln!("Usage: lolt <name> <tag>");
-        std::process::exit(1);
-    }
-
-    let game_name = &args[1];
-    let tag_line = &args[2];
-
-    let client = Client::new();
-
-    // TODO: make api key available system wide via ./zshrc or ./bashrc
+    // TODO: create cfw to supply riot api data
     dotenv().ok();
+    
+    let cli = Cli::parse();
+    
+    match &cli.command { 
+        Commands::Display { name, tag } => {
+            let client = Client::new();
 
-    let account = match get_account(&client, game_name, tag_line).await {
-        Ok(account) => account,
-        Err(e) => panic!("{}", e),
-    };
+            let account = match get_account(&client, name, tag).await {
+                Ok(account) => account,
+                Err(e) => panic!("{}", e),
+            };
 
-    let summoner = match get_summoner(&client, account.puuid.clone()).await {
-        Ok(summoner) => summoner,
-        Err(e) => panic!("{}", e),
-    };
+            let summoner = match get_summoner(&client, account.puuid.clone()).await {
+                Ok(summoner) => summoner,
+                Err(e) => panic!("{}", e),
+            };
 
-    let path = get_profile_icon(&client, summoner.profile_icon_id).await?;
-    display_summoner_icon(path);
-    display_summoner_stats(account, summoner);
+            let path = get_profile_icon(&client, summoner.profile_icon_id).await?;
+            display_summoner_icon(path);
+            display_summoner_stats(account, summoner);
 
-    Ok(())
+            Ok(())
+        }
+    }
 }
 
 async fn get_account(
