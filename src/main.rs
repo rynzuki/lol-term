@@ -55,7 +55,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Err(e) => panic!("{}", e),
             };
 
-            let summoner = match api.get_summoner(account.puuid.clone()).await {
+            let summoner = match api.get_summoner(&account.puuid).await {
                 Ok(summoner) => summoner,
                 Err(e) => panic!("{}", e),
             };

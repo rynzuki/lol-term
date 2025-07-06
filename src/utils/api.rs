@@ -45,7 +45,7 @@ impl Api {
 
     pub async fn get_summoner(
         &mut self,
-        puuid: String,
+        puuid: &String,
     ) -> Result<SummonerDto, Box<dyn std::error::Error>> {
         let url = format!(
             "https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/{}",
@@ -71,7 +71,7 @@ impl Api {
 
     pub async fn get_match_ids(
         &mut self,
-        puuid: String,
+        puuid: &String,
         amount: u8,
     ) -> Result<Vec<String>, Box<dyn std::error::Error>> {
         let url = format!(

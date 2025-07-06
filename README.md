@@ -21,12 +21,12 @@ icons.
 - Display profile icon scaled appropriately in the terminal
 - Show summoner name and level alongside the icon
 - Supports asynchronous API requests for responsive operation
+- Configuration support to select which account/profile to display
 
 ---
 
 ### Planned Features
 
-- Configuration support to select which account/profile to display
 - Match history and ranked stats display
 - Custom themes and layouts
 - Better fallback for terminals without image support
@@ -48,6 +48,7 @@ view.
 - Tokio async runtime
 - Viuer for terminal image display
 - Serde for JSON deserialization
+- Clap for commandline parsing
 
 ---
 
