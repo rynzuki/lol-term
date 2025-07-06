@@ -13,6 +13,8 @@ pub struct AccountDto {
 
 #[derive(Debug, Deserialize)]
 pub struct SummonerDto {
+    pub id: String,
+
     pub puuid: String,
 
     #[serde(rename = "profileIconId")]
@@ -28,6 +30,7 @@ pub struct SummonerDto {
 #[derive(Debug, Deserialize)]
 pub struct MatchDto {
     pub metadata: MetaDataDto,
+
     pub info: InfoDto,
 }
 
@@ -51,7 +54,7 @@ pub struct InfoDto {
     pub game_creation: i64,
 
     #[serde(rename = "gameDuration")]
-    pub game_duration: i64,
+    pub game_duration: u32,
 
     #[serde(rename = "gameEndTimestamp")]
     pub game_end_timestamp: i64,
@@ -107,7 +110,7 @@ pub struct ParticipantDto {
     #[serde(rename = "summonerId")]
     pub summoner_id: String,
 
-    win: bool,
+    pub win: bool,
 }
 
 #[derive(Debug, Deserialize)]

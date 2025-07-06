@@ -21,6 +21,10 @@ impl Api {
     ) -> Result<AccountDto, Box<dyn std::error::Error>> {
         let parts: Vec<&str> = account.split("#").collect();
 
+        if parts.len() != 2 {
+            return Err("Invalid account name".into());
+        }
+
         let url = format!(
             "https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/{}/{}",
             parts[0], parts[1],

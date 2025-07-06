@@ -16,7 +16,9 @@ fn get_config_path() -> PathBuf {
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct Config {
-    pub account: Option<String>,
+    pub account_name: String,
+    pub puuid: String,
+    pub summoner_id: String,
 }
 
 pub fn load_config() -> Config {

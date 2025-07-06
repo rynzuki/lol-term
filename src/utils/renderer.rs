@@ -18,8 +18,8 @@ pub fn display_summoner_icon(path: String) {
     };
 }
 
-pub fn display_summoner_stats(account: &AccountDto, summoner: &SummonerDto) {
-    let name = format!("{}#{}", account.game_name, account.tag_line);
+pub fn display_summoner_stats(account_name: &String, summoner: &SummonerDto) {
+    let name = format!("{}", account_name);
     let level = format!("LvL {}", summoner.summoner_level);
 
     let spaces = " ".repeat(30 - name.len() - level.len());
