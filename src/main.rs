@@ -10,7 +10,7 @@ use crate::utils::config;
 use crate::utils::renderer;
 use clap::{Parser, Subcommand};
 use dotenv::dotenv;
-use reqwest::Client;
+use std::env;
 
 #[derive(Parser)]
 #[command(name = "lolt")]
@@ -31,8 +31,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
 
     let cli = Cli::parse();
-
     let config = config::load_config();
+
+    let mut api = api::Api::new(env::var("API_KEY").expect("Missing api key!"));
 
     match &cli.command {
         Commands::Account { account } => {
@@ -49,19 +50,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return Err("Please set the account to display first.".into());
             }
 
-            let client = Client::new();
-
-            let account = match api::get_account(&client, &config.account.unwrap()).await {
+            let account = match api.get_account(&config.account.unwrap()).await {
                 Ok(account) => account,
                 Err(e) => panic!("{}", e),
             };
 
-            let summoner = match api::get_summoner(&client, account.puuid.clone()).await {
+            let summoner = match api.get_summoner(account.puuid.clone()).await {
                 Ok(summoner) => summoner,
                 Err(e) => panic!("{}", e),
             };
 
-            let path = api::get_profile_icon(&client, summoner.profile_icon_id).await?;
+            let path = api.get_profile_icon(summoner.profile_icon_id).await?;
             renderer::display_summoner_icon(path);
             renderer::display_summoner_stats(&account, &summoner);
 
